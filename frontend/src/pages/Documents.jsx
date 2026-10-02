@@ -1,0 +1,16 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
+import { ingestDocument, listDocuments, normalizeApiError, searchDocuments } from '../services/api';
+
+export default function DocumentsPage() {
+  const [documents, setDocuments] = useState([]);
+  const [results, setResults] = useState([]);
+  const [query, setQuery] = useState('');
+  const [form, setForm] = useState({ title: '', source: '', content: '' });
+  const [error, setError] = useState('');
+  useEffect(() => { listDocuments().then(setDocuments).catch((requestError) => setError(normalizeApiError(requestError))); }, []);
+  const ingest = async (event) => { event.preventDefault(); try { const document = await ingestDocument(form); setDocuments([document, ...documents]); setForm({ title: '', source: '', content: '' }); } catch (requestError) { setError(normalizeApiError(requestError)); } };
+  const search = async (event) => { event.preventDefault(); try { setResults(await searchDocuments(query)); } catch (requestError) { setError(normalizeApiError(requestError)); } };
+  return <div className="min-h-screen bg-slate-100 p-4 md:p-8"><div className="mx-auto max-w-4xl"><Link to="/chat" className="mb-6 inline-flex items-center gap-2 text-sm text-slate-600"><ArrowLeft size={16} /> Back to chat</Link><h1 className="text-2xl font-semibold">Documents</h1>{error && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}<form onSubmit={ingest} className="mt-6 space-y-3 rounded-2xl border border-slate-200 bg-white p-5"><h2 className="font-semibold">Add a document</h2>{['title', 'source'].map((field) => <input key={field} required placeholder={field[0].toUpperCase() + field.slice(1)} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={form[field]} onChange={(event) => setForm({ ...form, [field]: event.target.value })} />)}<textarea required placeholder="Content" className="min-h-32 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={form.content} onChange={(event) => setForm({ ...form, content: event.target.value })} /><button className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">Ingest document</button></form><form onSubmit={search} className="mt-6 flex gap-2"><input required className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Search document content" value={query} onChange={(event) => setQuery(event.target.value)} /><button className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">Search</button></form><div className="mt-6 space-y-3">{(results.length ? results : documents).map((item) => <div key={`${item.id || item.documentId}-${item.chunkIndex || 0}`} className="rounded-xl border border-slate-200 bg-white p-4"><div className="font-medium">{item.title}</div><div className="text-sm text-slate-500">{item.source}</div>{item.content && <p className="mt-2 text-sm text-slate-700">{item.content}</p>}</div>)}</div></div></div>;
+}

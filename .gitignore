@@ -1,0 +1,20 @@
+# Backend
+Backend/target/
+Backend/.mvn/
+Backend/.idea/
+Backend/.vscode/
+Backend/src/main/resources/application.properties
+# Frontend
+Frontend/node_modules/
+Frontend/dist/
+Frontend/.env
+Frontend/.env.*
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
